@@ -39,7 +39,7 @@ The advantage of doing this is that you can run the script from any directory wi
 There are two ways of achieving this:
 
 1. Using a symbolic link to `/usr/local/bin/`  
-  `sudo ln -s /absolute/path/to/sync_to_server /usr/local/bin/sync_to_server`
+  `sudo ln -s /absolute/path/to/sync_to_server.sh /usr/local/bin/sync_to_server`
 2. Appending the script to your PATH environment variable  
   `export PATH=$PATH:/absolute/path/to/sync_to_server`  
   (You would probably want to add the above line to your `.bashrc` or `.zshrc`)
