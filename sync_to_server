@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# This file simply calls the sync_to_server.sh script with the same arguments, thus acting as a wrapper.
+# This behaviour is required if you want have the script in your PATH since the added path must not contain dots.
+# It is not required when calling the script directly, or symlinking to e.g. /usr/local/bin, but we maintain it as a single point of entry to the underlying script.
+
+# Get path to this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Call the sync script, passing all arguments
+$SCRIPT_DIR/sync_to_server.sh "$@"

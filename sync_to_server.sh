@@ -19,22 +19,28 @@ fi
 # Make sure fswatch command is present
 if ! [ -x "$(command -v fswatch)" ]; then
   echo 'Error: fswatch is not installed.' >&2
+  exit 1
 fi
 
 # Rsync command as a function
 rsync_to_server() {
+  echo -e "\n\n---\nUpdate: $(date +"%T")\n"
+
   # Get list of files to be excluded
- EXCLUDE_FILES=$(mktemp)
- #  Concatenate contents of local gitignore if it exists with the global gitignore
-  cat .gitignore $(git config --global core.excludesfile) > $EXCLUDE_FILES
- 
-  
-  # echo "Excluding files: ${EXCLUDE_FILES}"
+  EXCLUDE_FILES=$(mktemp)
 
-  rsync -vha  --delete --exclude .git --exclude-from=$EXCLUDE_FILES $SRC_DIR $DEST_DIR
+  # Concatenate contents of local gitignore if it exists with the global gitignore
+  # Get the global gitignore file
+  GLOBAL_GITIGNORE=$(git config --global core.excludesfile)
+  # Get the local gitignore file, checking if it exists
+  LOCAL_GITIGNORE=""
+  if [ -f $SRC_DIR/.gitignore ]; then
+    LOCAL_GITIGNORE=$(cat $SRC_DIR/.gitignore)
+  fi
+  # Concatenate the two files, ensuring that they start on a new line
+  { echo "$LOCAL_GITIGNORE"; echo "$GLOBAL_GITIGNORE"; } > $EXCLUDE_FILES
 
-  # Remove the temporary file
-  # rm -f $EXCLUDE_FILES
+  rsync -vha --delete --exclude .git --exclude-from=$EXCLUDE_FILES $SRC_DIR $DEST_DIR
 }
 
 # Initial sync
