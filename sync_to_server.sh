@@ -24,6 +24,8 @@ fi
 
 # Rsync command as a function
 rsync_to_server() {
+  echo -e "\n\n---\nUpdate: $(date +"%T")\n"
+
   # Get list of files to be excluded
  EXCLUDE_FILES=$(mktemp)
  #  Concatenate contents of local gitignore if it exists with the global gitignore
