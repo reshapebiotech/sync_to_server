@@ -27,14 +27,19 @@ rsync_to_server() {
   echo -e "\n\n---\nUpdate: $(date +"%T")\n"
 
   # Get list of files to be excluded
- EXCLUDE_FILES=$(mktemp)
- #  Concatenate contents of local gitignore if it exists with the global gitignore
-  cat .gitignore $(git config --global core.excludesfile) > $EXCLUDE_FILES
- 
-  
+  EXCLUDE_FILES=$(mktemp)
   # echo "Excluding files: ${EXCLUDE_FILES}"
 
-  rsync -vha  --delete --exclude .git --exclude-from=$EXCLUDE_FILES $SRC_DIR $DEST_DIR
+  # Concatenate contents of local gitignore if it exists with the global gitignore
+  # Check if it exists
+  GLOBAL_GITIGNORE=$(git config --global core.excludesfile)
+  LOCAL_GITIGNORE=""
+  if [ -f $SRC_DIR/.gitignore ]; then
+    LOCAL_GITIGNORE=$(cat $SRC_DIR/.gitignore)
+  fi
+  $LOCAL_GITIGNORE $GLOBAL_GITIGNORE > $EXCLUDE_FILES
+ 
+  rsync -vha --delete --exclude .git --exclude-from=$EXCLUDE_FILES $SRC_DIR $DEST_DIR
 
   # Remove the temporary file
   # rm -f $EXCLUDE_FILES
