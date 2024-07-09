@@ -19,6 +19,7 @@ fi
 # Make sure fswatch command is present
 if ! [ -x "$(command -v fswatch)" ]; then
   echo 'Error: fswatch is not installed.' >&2
+  exit 1
 fi
 
 # Rsync command as a function
