@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # Check if enough arguments are supplied
-if [ "$#" -ne 2 ]; then
-    echo "Usage: ./sync_to_server.sh source_directory remote_directory"
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "Usage: ./sync_to_server.sh source_directory remote_directory [proxy_host]"
     exit 1
 fi
 
 # Set the source and destination directories from command line arguments
 SRC_DIR=$1
 DEST_DIR=$2
+PROXY_HOST=$3
 
 # Make sure rsync command is present
 if ! [ -x "$(command -v rsync)" ]; then
@@ -40,7 +41,11 @@ rsync_to_server() {
   # Concatenate the two files, ensuring that they start on a new line
   { echo "$LOCAL_GITIGNORE"; echo "$GLOBAL_GITIGNORE"; } > $EXCLUDE_FILES
 
-  rsync -vha --delete --exclude .git --exclude-from=$EXCLUDE_FILES $SRC_DIR $DEST_DIR
+  if [ -n "$PROXY_HOST" ]; then
+      rsync -vha --delete --exclude .git --exclude-from=$EXCLUDE_FILES -e "ssh -o ProxyCommand=\"ssh $PROXY_HOST -W %h:%p\"" $SRC_DIR $DEST_DIR
+  else
+      rsync -vha --delete --exclude .git --exclude-from=$EXCLUDE_FILES $SRC_DIR $DEST_DIR
+  fi
 }
 
 # Initial sync
