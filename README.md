@@ -7,7 +7,7 @@ The script respects gitignore so it does not overwrite any files that are in you
 ## Usage
 
 ```bash
-./sync_to_server.sh source_directory remote_directory
+./sync_to_server.sh source_directory remote_directory [proxy_host]
 ```
 
 ## Prerequisites
@@ -17,13 +17,23 @@ The script respects gitignore so it does not overwrite any files that are in you
 - A `.gitignore` file in the source directory (optional).
 - A global gitignore file configured via `git config --global core.excludesfile` (optional).
 
-## How It Works
+## How it works
 
 1. Checks if the correct number of arguments are supplied.
 2. Sets source and destination directories from the command line arguments.
 3. Ensures `rsync` and `fswatch` are installed.
 4. Performs an initial sync using `rsync`.
 5. Watches for changes in the source directory and synchronizes them to the remote directory.
+
+### Proxy host
+
+The script supports synchronizing through an intermediate proxy/jump host when direct connection to the destination server is not possible (e.g., when the destination is behind a firewall or in a private network).
+
+To use a proxy host, add it as the third argument:
+
+```bash
+./sync_to_server.sh /path/to/source_directory user@remote:/path/to/destination_directory proxy_user@proxy_host
+```
 
 ## Example
 
