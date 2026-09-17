@@ -64,5 +64,6 @@ sync_to_server source_directory remote_directory
 
 - Exclusions come from rsync's per-directory merge rule (`--filter=':- .gitignore'`), so every `.gitignore` in the tree applies to its own directory and below, with patterns anchored the way git anchors them. The global excludes file from `git config --global core.excludesfile` is applied after the repo's own ignores.
 - Negation patterns (`!pattern`) are not supported; rsync treats such a line as a literal filename.
+- Ignored paths that already exist on the destination are never deleted: an rsync exclude also protects the matching path from `--delete`. Remove such leftovers on the server by hand.
 - The synchronization is performed using `rsync` with options for verbosity, human-readable output, archive mode, and deletion of extraneous files from the destination directory.
 - Changes in the source directory are detected using `fswatch`, triggering `rsync` for each change.
