@@ -38,10 +38,11 @@ rsync_to_server() {
     FILTER_ARGS+=(--exclude-from="$GLOBAL_GITIGNORE")
   fi
 
+  # --delete-after: the receiver must get updated .gitignore files before its delete pass, or it cannot protect newly ignored paths
   if [ -n "$PROXY_HOST" ]; then
-      rsync -vha --delete "${FILTER_ARGS[@]}" -e "ssh -o ProxyCommand=\"ssh $PROXY_HOST -W %h:%p\"" $SRC_DIR $DEST_DIR
+      rsync -vha --delete-after "${FILTER_ARGS[@]}" -e "ssh -o ProxyCommand=\"ssh $PROXY_HOST -W %h:%p\"" $SRC_DIR $DEST_DIR
   else
-      rsync -vha --delete "${FILTER_ARGS[@]}" $SRC_DIR $DEST_DIR
+      rsync -vha --delete-after "${FILTER_ARGS[@]}" $SRC_DIR $DEST_DIR
   fi
 }
 
