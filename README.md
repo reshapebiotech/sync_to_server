@@ -2,7 +2,7 @@
 
 A script to synchronize a local directory with a remote directory using `rsync` and `fswatch`.
 
-The script respects gitignore so it does not overwrite any files that are in your gitignore
+The script respects gitignore: files matched by a `.gitignore` at any depth in the source tree, or by your global git excludes file, are not synced.
 
 ## Usage
 
@@ -14,7 +14,7 @@ The script respects gitignore so it does not overwrite any files that are in you
 
 - `rsync` must be installed.
 - `fswatch` must be installed.
-- A `.gitignore` file in the source directory (optional).
+- `.gitignore` files anywhere in the source tree (optional).
 - A global gitignore file configured via `git config --global core.excludesfile` (optional).
 
 ## How it works
@@ -62,6 +62,8 @@ sync_to_server source_directory remote_directory
 
 ## Notes
 
-- The script concatenates local and global `.gitignore` files to exclude specified files during synchronization.
+- Exclusions come from rsync's per-directory merge rule (`--filter=':- .gitignore'`), so every `.gitignore` in the tree applies to its own directory and below, with patterns anchored the way git anchors them. The global excludes file from `git config --global core.excludesfile` is applied after the repo's own ignores.
+- Negation patterns (`!pattern`) are not supported; rsync treats such a line as a literal filename.
+- Ignored paths that already exist on the destination are never deleted: an rsync exclude also protects the matching path from `--delete`. Remove such leftovers on the server by hand.
 - The synchronization is performed using `rsync` with options for verbosity, human-readable output, archive mode, and deletion of extraneous files from the destination directory.
 - Changes in the source directory are detected using `fswatch`, triggering `rsync` for each change.

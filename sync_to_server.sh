@@ -23,28 +23,26 @@ if ! [ -x "$(command -v fswatch)" ]; then
   exit 1
 fi
 
-# Rsync command as a function
+# Sync SRC_DIR to DEST_DIR with rsync, excluding .git and anything matched by
+# a .gitignore at any depth or by the user's global git excludes file.
 rsync_to_server() {
   echo -e "\n\n---\nUpdate: $(date +"%T")\n"
 
-  # Get list of files to be excluded
-  EXCLUDE_FILES=$(mktemp)
-
-  # Concatenate contents of local gitignore if it exists with the global gitignore
-  # Get the global gitignore file
-  GLOBAL_GITIGNORE=$(git config --global core.excludesfile)
-  # Get the local gitignore file, checking if it exists
-  LOCAL_GITIGNORE=""
-  if [ -f $SRC_DIR/.gitignore ]; then
-    LOCAL_GITIGNORE=$(cat $SRC_DIR/.gitignore)
+  # Rule order is precedence: first match wins, so repo ignores beat global ones
+  FILTER_ARGS=(
+    --exclude .git
+    --filter=':- .gitignore'  # dir-merge: rsync reads .gitignore in every directory, patterns relative to that directory
+  )
+  GLOBAL_GITIGNORE=$(git config --path --global core.excludesfile 2>/dev/null)  # --path expands a leading ~
+  if [ -n "$GLOBAL_GITIGNORE" ] && [ -f "$GLOBAL_GITIGNORE" ]; then
+    FILTER_ARGS+=(--exclude-from="$GLOBAL_GITIGNORE")
   fi
-  # Concatenate the two files, ensuring that they start on a new line
-  { echo "$LOCAL_GITIGNORE"; echo "$GLOBAL_GITIGNORE"; } > $EXCLUDE_FILES
 
+  # --delete-after: the receiver must get updated .gitignore files before its delete pass, or it cannot protect newly ignored paths
   if [ -n "$PROXY_HOST" ]; then
-      rsync -vha --delete --exclude .git --exclude-from=$EXCLUDE_FILES -e "ssh -o ProxyCommand=\"ssh $PROXY_HOST -W %h:%p\"" $SRC_DIR $DEST_DIR
+      rsync -vha --delete-after "${FILTER_ARGS[@]}" -e "ssh -o ProxyCommand=\"ssh $PROXY_HOST -W %h:%p\"" $SRC_DIR $DEST_DIR
   else
-      rsync -vha --delete --exclude .git --exclude-from=$EXCLUDE_FILES $SRC_DIR $DEST_DIR
+      rsync -vha --delete-after "${FILTER_ARGS[@]}" $SRC_DIR $DEST_DIR
   fi
 }
 
